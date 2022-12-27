@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'dart:async';
+import 'package:dio/dio.dart';
+import 'calendar.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -25,6 +28,9 @@ class Water {
   late int amount = 1200;
 }
 
+DateTime now = DateTime.now();
+var date = now;
+
 Water my = new Water();
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
@@ -39,11 +45,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   late AnimationController fourthController;
   late Animation<double> fourthAnimation;
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
 
+    timer = Timer.periodic(Duration(seconds: 5), (t) {
+      getHttp();
+      setState(() {});
+    });
     firstController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1500));
     firstAnimation = Tween<double>(begin: 1.9, end: 2.1).animate(
@@ -138,6 +149,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      appBar: AppBar(
+        title: Text('${date.year}年${date.month}月${date.day}日喝水量'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            date = date.subtract(const Duration(days: 1));
+            getHttp();
+            print(date);
+            setState(() {});
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.arrow_forward),
+            onPressed: () {
+              date = date.add(const Duration(days: 1));
+              getHttp();
+              setState(() {});
+            },
+          )
+        ],
+      ),
       backgroundColor: Colors.white,
       body: Stack(children: <Widget>[
         Center(
@@ -183,22 +216,33 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 300,
-              ),
-              ElevatedButton(
-                child: Text('Reset'),
-                onPressed: () {
-                  my.amount = 1200;
-                  setState(() {});
-                },
-              ),
-            ],
           ),
         ]),
       ]),
     );
+  }
+}
+
+Future getHttp() async {
+  try {
+    var response = await Dio().get('http://140.115.59.3:10191/drinks?year=' +
+        date.year.toString() +
+        '&month=' +
+        date.month.toString() +
+        '&day=' +
+        date.day.toString());
+    Map<String, dynamic> data = (response.data);
+    print(data);
+    if (data.isEmpty) {
+      my.amount = 0;
+      print(my.amount);
+    } else {
+      my.amount = int.parse(data['amount']);
+    }
+    print(data['amount']);
+    return data['amount'];
+  } catch (e) {
+    print(e);
   }
 }
 
