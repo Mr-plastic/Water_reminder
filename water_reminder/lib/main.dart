@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'calendar.dart';
 
-void main() {
+void main() async {
   runApp(MaterialApp(
     home: HomePage(),
     title: "water-reminder",
@@ -25,7 +25,7 @@ class HomePage extends StatefulWidget {
 }
 
 class Water {
-  late int amount = 1200;
+  late int amount = 0;
 }
 
 DateTime now = DateTime.now();
@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
       });
 
-    Timer(Duration(seconds: 2), () {
+    Timer(Duration(seconds: 5), () {
       firstController.forward();
     });
 

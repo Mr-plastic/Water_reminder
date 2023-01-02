@@ -39,6 +39,7 @@ dependencies:
   percent_indicator: ^4.2.2
   dio: ^4.0.6
   table_calendar: ^3.0.8
+
  
 
 dev_dependencies:
